@@ -1,3 +1,5 @@
+import re
+
 from rank_bm25 import BM25Okapi
 from sentence_transformers import SentenceTransformer, util
 
@@ -10,8 +12,20 @@ docs = [
 ]
 query = "How much money did the company earn in 2024?"
 
-bm25 = BM25Okapi([d.lower().split() for d in docs])
-print("BM25:", bm25.get_scores(query.lower().split()).round(2))
+# Small hand-written stopword list (common words that carry no meaning)
+STOPWORDS = {"the", "a", "an", "in", "of", "for", "to", "and", "was",
+             "did", "how", "much", "is", "due", "after", "compared"}
+
+
+def tokenize(text):
+    # Lowercase, keep only word characters (drops punctuation like "?" and "."),
+    # then remove stopwords
+    tokens = re.findall(r"\w+", text.lower())
+    return [t for t in tokens if t not in STOPWORDS]
+
+
+bm25 = BM25Okapi([tokenize(d) for d in docs])
+print("BM25:", bm25.get_scores(tokenize(query)).round(2))
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
 sims = util.cos_sim(model.encode(query), model.encode(docs))[0]
