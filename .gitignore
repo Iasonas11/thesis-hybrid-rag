@@ -10,3 +10,6 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# Downloaded datasets (not ours to redistribute, large files)
+data/
